@@ -40,9 +40,8 @@ static float cmd_vel_ang_z = 0.0f;
 //------------------------------------------------------------------------------
 
 static void error_loop() {
-    while (true) {
-        delay(100);
-    }
+    delay(1000);
+    esp_restart();
 }
 
 #define RCCHECK(fn)           \
@@ -78,12 +77,12 @@ static void cmd_vel_callback(const void* msgin) {
 void mros_init(HardwareSerial& serial) {
     serial.begin(115200);
     set_microros_serial_transports(serial);
-    delay(2000);
+    delay(1000);
 
     allocator = rcl_get_default_allocator();
 
+    while (!mros_fail()) delay(1000);
     RCCHECK(rclc_support_init(&support, 0, nullptr, &allocator));
-
     RCCHECK(rclc_node_init_default(
         &node,
         "micro_ros_platformio_node",
@@ -128,7 +127,7 @@ void mros_init(HardwareSerial& serial) {
         &pc_publisher,
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32MultiArray),
-        "pc_status"));
+        "pc_bus"));
 
     //----------------------------------------------------------
     // Executor
@@ -145,10 +144,9 @@ void mros_init(HardwareSerial& serial) {
 }
 
 void mros_spin() {
-    RCSOFTCHECK(
-        rclc_executor_spin_some(
-            &executor,
-            RCL_MS_TO_NS(10)));
+    RCSOFTCHECK(rclc_executor_spin_some(
+        &executor,
+        RCL_MS_TO_NS(10)));
 }
 
 void mros_debug(const char* text) {
@@ -195,3 +193,5 @@ void mros_publish_pc(const PC_t* pc) {
 float mros_get_cmd_vel_lin_x() { return cmd_vel_lin_x; }
 float mros_get_cmd_vel_lin_y() { return cmd_vel_lin_y; }
 float mros_get_cmd_vel_ang_z() { return cmd_vel_ang_z; }
+
+bool mros_fail() { return (rmw_uros_ping_agent(100, 2) != RMW_RET_OK); }

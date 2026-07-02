@@ -21,6 +21,7 @@ void loop() {
 
     if (per_sec_flag) {
         per_sec_flag = false;
+        if (mros_fail()) esp_restart();
 
         mController.powerc.mppt.voltage++;
 
@@ -31,5 +32,6 @@ void loop() {
     }
 
     if (per_sec10_flag) {
+        // esp_restart();
     }
 }
