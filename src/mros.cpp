@@ -7,7 +7,6 @@
 #include <rclc/rclc.h>
 #include <rosidl_runtime_c/string_functions.h>
 #include <std_msgs/msg/float32_multi_array.h>
-#include <std_msgs/msg/int32.h>
 #include <std_msgs/msg/string.h>
 
 //------------------------------------------------------------------------------
@@ -18,16 +17,13 @@ static rcl_allocator_t allocator;
 static rclc_support_t  support;
 static rcl_node_t      node;
 static rclc_executor_t executor;
-static rcl_timer_t     timer;
 
 // Publishers
-static rcl_publisher_t int_publisher;
-static rcl_publisher_t string_publisher;
+static rcl_publisher_t debug_publisher;
 static rcl_publisher_t pc_publisher;
 
 // Messages
-static std_msgs__msg__Int32             int_msg;
-static std_msgs__msg__String            string_msg;
+static std_msgs__msg__String            debug_msg;
 static std_msgs__msg__Float32MultiArray pc_msg;
 
 // Subscriber
@@ -63,20 +59,6 @@ static void error_loop() {
     } while (0)
 
 //------------------------------------------------------------------------------
-// Timer callback
-//------------------------------------------------------------------------------
-
-static void timer_callback(rcl_timer_t* timer, int64_t last_call_time) {
-    RCLC_UNUSED(last_call_time);
-
-    if (timer == nullptr)
-        return;
-
-    RCSOFTCHECK(rcl_publish(&int_publisher, &int_msg, nullptr));
-    int_msg.data++;
-}
-
-//------------------------------------------------------------------------------
 // CmdVel callback
 //------------------------------------------------------------------------------
 
@@ -109,31 +91,16 @@ void mros_init(HardwareSerial& serial) {
         &support));
 
     //----------------------------------------------------------
-    // Int32 publisher
+    // Debug String publisher
     //----------------------------------------------------------
+
+    std_msgs__msg__String__init(&debug_msg);
 
     RCCHECK(rclc_publisher_init_default(
-        &int_publisher,
-        &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
-        "micro_ros_platformio_node_publisher"));
-
-    //----------------------------------------------------------
-    // String publisher
-    //----------------------------------------------------------
-
-    RCCHECK(rclc_publisher_init_default(
-        &string_publisher,
+        &debug_publisher,
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, String),
-        "status"));
-
-    //----------------------------------------------------------
-    // Initialize message memory
-    //----------------------------------------------------------
-
-    int_msg.data = 0;
-    std_msgs__msg__String__init(&string_msg);
+        "debug"));
 
     //----------------------------------------------------------
     // CmdVel subscriber
@@ -153,7 +120,6 @@ void mros_init(HardwareSerial& serial) {
 
     std_msgs__msg__Float32MultiArray__init(&pc_msg);
 
-    // Allocate space for 18 floats
     pc_msg.data.capacity = 18;
     pc_msg.data.size     = 18;
     pc_msg.data.data     = (float*)malloc(sizeof(float) * 18);
@@ -165,23 +131,10 @@ void mros_init(HardwareSerial& serial) {
         "pc_status"));
 
     //----------------------------------------------------------
-    // Timer
-    //----------------------------------------------------------
-
-    RCCHECK(rclc_timer_init_default2(
-        &timer,
-        &support,
-        RCL_MS_TO_NS(1000),
-        timer_callback,
-        true));
-
-    //----------------------------------------------------------
     // Executor
     //----------------------------------------------------------
 
-    RCCHECK(rclc_executor_init(&executor, &support.context, 2, &allocator));
-
-    RCCHECK(rclc_executor_add_timer(&executor, &timer));
+    RCCHECK(rclc_executor_init(&executor, &support.context, 1, &allocator));
 
     RCCHECK(rclc_executor_add_subscription(
         &executor,
@@ -198,11 +151,11 @@ void mros_spin() {
             RCL_MS_TO_NS(10)));
 }
 
-void mros_publish_string(const char* text) {
-    if (!rosidl_runtime_c__String__assign(&string_msg.data, text))
+void mros_debug(const char* text) {
+    if (!rosidl_runtime_c__String__assign(&debug_msg.data, text))
         return;
 
-    RCSOFTCHECK(rcl_publish(&string_publisher, &string_msg, nullptr));
+    RCSOFTCHECK(rcl_publish(&debug_publisher, &debug_msg, nullptr));
 }
 
 void mros_publish_pc(const PC_t* pc) {

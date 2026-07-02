@@ -6,23 +6,30 @@ MController mController;
 
 void setup() {
     // neopixelWrite(48, 0, 0, 0);
-    mros_init(Serial);
+    mController.init();
 }
 
 void loop() {
-    static uint32_t last = 0;
-
     mros_spin();
-    mController.update();
 
-    if (millis() - last >= 2000) {
-        last = millis();
+    if (per_ms10_flag) {
+        mController.update();
+    }
+
+    if (per_ms100_flag) {
+    }
+
+    if (per_sec_flag) {
+        per_sec_flag = false;
 
         mController.powerc.mppt.voltage++;
 
         char buffer[32];
         sprintf(buffer, "%.2f", mController.cmd_vel.x);
-        mros_publish_string(buffer);
+        mros_debug(buffer);
         mros_publish_pc(&mController.powerc);
+    }
+
+    if (per_sec10_flag) {
     }
 }

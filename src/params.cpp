@@ -1,6 +1,44 @@
 #include "params.h"
 
+hw_timer_t*      per_sec_timer  = NULL;
+volatile uint8_t ms10_couter    = 0;
+volatile uint8_t ms100_couter   = 0;
+volatile uint8_t sec_couter     = 0;
+volatile bool    per_ms10_flag  = false;
+volatile bool    per_ms100_flag = false;
+volatile bool    per_sec_flag   = false;
+volatile bool    per_sec10_flag = false;
+
+void IRAM_ATTR on_per_ms10_timer() {
+    per_ms10_flag = true;
+    if (ms10_couter++ >= 10) {
+        ms10_couter = 0;
+
+        per_ms100_flag = true;
+        if (ms100_couter++ >= 10) {
+            ms100_couter = 0;
+
+            per_sec_flag   = true;
+            per_ms100_flag = true;
+            if (sec_couter++ >= 10) {
+                sec_couter = 0;
+
+                per_sec10_flag = true;
+            }
+        }
+    }
+}
+
+void per_sec_init(void) {
+    per_sec_timer = timerBegin(0, 80, true);  // 80 prescaler = 1us per tick
+    timerAttachInterrupt(per_sec_timer, &on_per_ms10_timer, true);
+    timerAlarmWrite(per_sec_timer, 10000, true);  // autoreload = true
+    timerAlarmEnable(per_sec_timer);
+}
+
 MCStatus_t MController::init(void) {
+    per_sec_init();
+    mros_init(Serial);
     return STATUS_OK;
 }
 

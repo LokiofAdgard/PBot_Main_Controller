@@ -1,8 +1,15 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-#include "structs.h"
 #include "mros.h"
+#include "structs.h"
+
+extern bool volatile per_ms10_flag;
+extern bool volatile per_ms100_flag;
+extern bool volatile per_sec_flag;
+extern bool volatile per_sec10_flag;
+
+void per_sec_init(void);
 
 class MController {
     private:

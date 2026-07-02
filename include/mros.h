@@ -7,7 +7,7 @@
 void mros_init(HardwareSerial& serial);
 void mros_spin();
 
-void mros_publish_string(const char* text);
+void mros_debug(const char* text);
 void mros_publish_pc(const PC_t* pc);
 
 float mros_get_cmd_vel_lin_x();
