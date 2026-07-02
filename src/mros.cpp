@@ -6,6 +6,7 @@
 #include <rclc/executor.h>
 #include <rclc/rclc.h>
 #include <rosidl_runtime_c/string_functions.h>
+#include <std_msgs/msg/float32_multi_array.h>
 #include <std_msgs/msg/int32.h>
 #include <std_msgs/msg/string.h>
 
@@ -22,10 +23,12 @@ static rcl_timer_t     timer;
 // Publishers
 static rcl_publisher_t int_publisher;
 static rcl_publisher_t string_publisher;
+static rcl_publisher_t pc_publisher;
 
 // Messages
-static std_msgs__msg__Int32  int_msg;
-static std_msgs__msg__String string_msg;
+static std_msgs__msg__Int32             int_msg;
+static std_msgs__msg__String            string_msg;
+static std_msgs__msg__Float32MultiArray pc_msg;
 
 // Subscriber
 static rcl_subscription_t        cmd_vel_sub;
@@ -145,6 +148,23 @@ void mros_init(HardwareSerial& serial) {
         "cmd_vel"));
 
     //----------------------------------------------------------
+    // PC Float32MultiArray publisher
+    //----------------------------------------------------------
+
+    std_msgs__msg__Float32MultiArray__init(&pc_msg);
+
+    // Allocate space for 18 floats
+    pc_msg.data.capacity = 18;
+    pc_msg.data.size     = 18;
+    pc_msg.data.data     = (float*)malloc(sizeof(float) * 18);
+
+    RCCHECK(rclc_publisher_init_default(
+        &pc_publisher,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32MultiArray),
+        "pc_status"));
+
+    //----------------------------------------------------------
     // Timer
     //----------------------------------------------------------
 
@@ -183,6 +203,36 @@ void mros_publish_string(const char* text) {
         return;
 
     RCSOFTCHECK(rcl_publish(&string_publisher, &string_msg, nullptr));
+}
+
+void mros_publish_pc(const PC_t* pc) {
+    float* d = pc_msg.data.data;
+
+    d[0] = pc->solar.voltage;
+    d[1] = pc->solar.current;
+    d[2] = pc->solar.power;
+
+    d[3] = pc->mppt.voltage;
+    d[4] = pc->mppt.current;
+    d[5] = pc->mppt.power;
+
+    d[6] = pc->bat.voltage;
+    d[7] = pc->bat.current;
+    d[8] = pc->bat.power;
+
+    d[9]  = pc->v5.voltage;
+    d[10] = pc->v5.current;
+    d[11] = pc->v5.power;
+
+    d[12] = pc->v12a.voltage;
+    d[13] = pc->v12a.current;
+    d[14] = pc->v12a.power;
+
+    d[15] = pc->v12b.voltage;
+    d[16] = pc->v12b.current;
+    d[17] = pc->v12b.power;
+
+    RCSOFTCHECK(rcl_publish(&pc_publisher, &pc_msg, nullptr));
 }
 
 //------------------------------------------------------------------------------
