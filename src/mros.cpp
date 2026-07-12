@@ -85,7 +85,7 @@ void mros_init(HardwareSerial& serial) {
     RCCHECK(rclc_support_init(&support, 0, nullptr, &allocator));
     RCCHECK(rclc_node_init_default(
         &node,
-        "micro_ros_platformio_node",
+        "esp_controller_node",
         "",
         &support));
 

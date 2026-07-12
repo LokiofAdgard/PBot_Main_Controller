@@ -36,13 +36,36 @@ void per_sec_init(void) {
     timerAlarmEnable(per_sec_timer);
 }
 
+void init_gpio() {
+    pinMode(CE, OUTPUT);
+    // pinMode(LED_RGB, OUTPUT);
+    // pinMode(LED_STR, OUTPUT);
+}
+
+void MController::set_err(MCErr_off_t err, bool cls) {
+    if (err == ERR_CLS) {
+        err_reg = 0x00;
+        return;
+    }
+    if (cls)
+        this->err_reg &= ~(1 << err);
+    else
+        this->err_reg |= (1 << err);
+}
+
 MCStatus_t MController::init(void) {
     per_sec_init();
-    mros_init(Serial);
+    // mros_init(Serial);
+    init_gpio();
+    init_can();
     return STATUS_OK;
 }
 
 MCStatus_t MController::update(void) {
+    return STATUS_OK;
+}
+
+MCStatus_t MController::mrosGetUpdate(void) {
     this->cmd_vel.x     = mros_get_cmd_vel_lin_x();
     this->cmd_vel.y     = mros_get_cmd_vel_lin_y();
     this->cmd_vel.theta = mros_get_cmd_vel_ang_z();

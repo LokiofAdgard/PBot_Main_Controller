@@ -13,7 +13,11 @@ typedef enum {
 } MCStatus_t;
 
 typedef enum {
-    ERR_BAT = 0x00
+    ERR_MROS = 0x00,
+    ERR_NRF  = 0x01,
+    ERR_CAN  = 0x02,
+    ERR_IMU  = 0x03,
+    ERR_CLS  = 0xFF
 } MCErr_off_t;
 
 typedef struct {
@@ -47,5 +51,32 @@ typedef struct {
     float y;
     float theta;
 } Cmd_vel_t;
+
+class MController {
+    private:
+    MCState_t state;
+    uint8_t   err_reg;
+
+    void set_err(MCErr_off_t err, bool cls = false);
+
+    public:
+    uint8_t   vbat;
+    Cmd_vel_t cmd_vel;
+    PC_t      powerc;
+    MC_t      motorc;
+
+    MCStatus_t init(void);
+    MCStatus_t update(void);
+
+    MCStatus_t mrosGetUpdate(void);
+
+    MCStatus_t pcGetBus(void);
+    MCStatus_t pcGetTemp(void);
+    MCStatus_t pcSetMode(void);
+
+    MCStatus_t mcGetTemp(void);
+    MCStatus_t mcGetEnc(void);
+    MCStatus_t mcSetVel(void);
+};
 
 #endif

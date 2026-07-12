@@ -1,7 +1,13 @@
+#ifndef PARAMS_H
+#define PARAMS_H
+
 #include <Arduino.h>
+#include <SPI.h>
 #include <Wire.h>
 
+#include "canBus.h"
 #include "mros.h"
+#include "pins.h"
 #include "structs.h"
 
 extern bool volatile per_ms10_flag;
@@ -10,18 +16,6 @@ extern bool volatile per_sec_flag;
 extern bool volatile per_sec10_flag;
 
 void per_sec_init(void);
+void init_gpio(void);
 
-class MController {
-    private:
-    MCState_t state;
-    uint8_t   err_reg;
-
-    public:
-    uint8_t   vbat;
-    Cmd_vel_t cmd_vel;
-    PC_t      powerc;
-    MC_t      motorc;
-
-    MCStatus_t init(void);
-    MCStatus_t update(void);
-};
+#endif
