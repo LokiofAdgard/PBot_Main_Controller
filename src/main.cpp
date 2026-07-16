@@ -16,7 +16,6 @@ void loop() {
 
     if (per_ms10_flag) {
         mController.update();
-        can_update(&mController);
     }
 
     if (per_ms100_flag) {
@@ -30,13 +29,21 @@ void loop() {
         // mros_debug(buffer);
         // mros_publish_pc(&mController.powerc);
 
-        Serial.printf("V: %02f\n", mController.powerc.solar.voltage);
-        Serial.printf("I: %02f\n", mController.powerc.solar.current);
-        Serial.printf("P: %02f\n", mController.powerc.solar.power);
-        Serial.println("");
+        can_req(DATA_REQ, GET_ALL);
     }
 
     if (per_sec10_flag) {
         per_sec10_flag = false;
+    }
+
+    if (can_available) {
+        can_available = false;
+        can_update(&mController);
+
+        Serial.printf("V: %02f\n", mController.powerc.solar.voltage);
+        Serial.printf("I: %02f\n", mController.powerc.solar.current);
+        Serial.printf("P: %02f\n", mController.powerc.solar.power);
+        Serial.printf("T: 0x%02x\n", mController.powerc.temp);
+        Serial.println("");
     }
 }

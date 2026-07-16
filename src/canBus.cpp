@@ -1,6 +1,9 @@
 #include "canBus.h"
 
+volatile bool  can_available = false;
 twai_message_t rx;
+
+void can_rx_task(void* arg);
 
 // bool can_query_id(uint32_t id, uint32_t timeout_ms) {
 //     twai_message_t rtr   = {};
@@ -27,6 +30,14 @@ twai_message_t rx;
 //     return false;
 // }
 
+void can_rx_task(void* arg) {
+    while (true) {
+        if (twai_receive(&rx, portMAX_DELAY) == ESP_OK && !rx.rtr) {
+            can_available = true;
+        }
+    }
+}
+
 void init_can() {
     twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT(
         (gpio_num_t)CAN_TX,
@@ -43,14 +54,17 @@ void init_can() {
     // if (err == ESP_OK) {
     // } else {
     // }
+    xTaskCreate(can_rx_task, "CAN_RX", 2048, NULL, 20, NULL);
 }
 
 void can_update(MController* mc) {
-    if (twai_receive(&rx, 0) != ESP_OK && !rx.rtr) return;
+    // if (twai_receive(&rx, 0) != ESP_OK) return;
+    // if (rx.rtr) return;
 
     switch (rx.identifier) {
         case CAN_ID_INA:
             PBus_t* bus;
+            neopixelWrite(48, 0x00, 0x00, 0x04);
             switch (rx.data[6]) {
                 case INA_SOL_ADDR:
                     bus = &mc->powerc.solar;
@@ -67,7 +81,30 @@ void can_update(MController* mc) {
             bus->power   = (int16_t(rx.data[5] << 8 | rx.data[4])) * 0.0025f * 0.4f;
             break;
 
+        case CAN_ID_STA:
+            neopixelWrite(48, 0x04, 0x00, 0x00);
+            mc->powerc.state.raw = (rx.data[1] << 8 | rx.data[0] << 0);
+            mc->powerc.temp      = (rx.data[3] << 8 | rx.data[2] << 0);
+
         default:
             break;
     }
+}
+
+bool can_tx(uint32_t id, const uint8_t* data, uint8_t dlc) {
+    twai_message_t msg   = {};
+    msg.identifier       = id;
+    msg.extd             = 0;  // Standard ID
+    msg.rtr              = 0;  // Data frame
+    msg.data_length_code = dlc;
+
+    for (int i = 0; i < dlc; i++)
+        msg.data[i] = data[i];
+
+    return twai_transmit(&msg, pdMS_TO_TICKS(10)) == ESP_OK;
+}
+
+void can_req(Txid_t id, Req_t req) {
+    uint8_t buf[1] = {req};
+    can_tx(id, buf, 1);
 }

@@ -27,6 +27,26 @@ typedef struct {
 } PBus_t;
 
 typedef struct {
+    union {
+        struct {
+            uint16_t mode : 2;
+
+            uint16_t sol : 1;
+            uint16_t solOut : 1;
+            uint16_t mpptIn : 1;
+            uint16_t bat : 1;
+
+            uint16_t en_v5 : 1;
+            uint16_t en_v12a : 1;
+            uint16_t en_v12b : 1;
+
+            uint16_t en_fan : 1;
+
+            uint16_t req : 4;
+        } bits;
+        uint16_t raw;
+    } state;
+
     PBus_t solar;
     PBus_t mppt;
     PBus_t bat;
@@ -34,7 +54,7 @@ typedef struct {
     PBus_t v12a;
     PBus_t v12b;
 
-    uint8_t temp;
+    uint16_t temp;
 } PC_t;
 
 typedef struct {
