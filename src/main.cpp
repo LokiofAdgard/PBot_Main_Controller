@@ -29,7 +29,7 @@ void loop() {
         // mros_debug(buffer);
         // mros_publish_pc(&mController.powerc);
 
-        can_req(DATA_REQ, GET_ALL);
+        can_req(PC_DATA_REQ, GET_ALL);
     }
 
     if (per_sec10_flag) {
@@ -40,10 +40,10 @@ void loop() {
         can_available = false;
         can_update(&mController);
 
-        Serial.printf("V: %02f\n", mController.powerc.solar.voltage);
-        Serial.printf("I: %02f\n", mController.powerc.solar.current);
-        Serial.printf("P: %02f\n", mController.powerc.solar.power);
-        Serial.printf("T: 0x%02x\n", mController.powerc.temp);
+        Serial.printf("V: %02f\n", (float)(mController.powerc.solar.voltage * 1.25e-3f));
+        Serial.printf("I: %02f\n", (float)(mController.powerc.solar.current * 0.4f));
+        Serial.printf("P: %02f\n", (float)(mController.powerc.solar.power * 0.0025f * 0.4f));
+        Serial.printf("T: %02f\n", (float)(mController.powerc.temp * 0.0625f));
         Serial.println("");
     }
 }

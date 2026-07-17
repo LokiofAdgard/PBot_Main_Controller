@@ -62,7 +62,7 @@ void can_update(MController* mc) {
     // if (rx.rtr) return;
 
     switch (rx.identifier) {
-        case CAN_ID_INA:
+        case PC_ID_INA:
             PBus_t* bus;
             neopixelWrite(48, 0x00, 0x00, 0x04);
             switch (rx.data[6]) {
@@ -76,22 +76,28 @@ void can_update(MController* mc) {
                 default:
                     break;
             }
-            bus->voltage = (int16_t(rx.data[1] << 8 | rx.data[0])) * 1.25e-3f;
-            bus->current = (int16_t(rx.data[3] << 8 | rx.data[2])) * 0.4f;
-            bus->power   = (int16_t(rx.data[5] << 8 | rx.data[4])) * 0.0025f * 0.4f;
+            bus->voltage = (rx.data[1] << 8 | rx.data[0]);
+            bus->current = (rx.data[3] << 8 | rx.data[2]);
+            bus->power   = (rx.data[5] << 8 | rx.data[4]);
             break;
 
-        case CAN_ID_STA:
+        case PC_ID_STA:
             neopixelWrite(48, 0x04, 0x00, 0x00);
             mc->powerc.state.raw = (rx.data[1] << 8 | rx.data[0] << 0);
             mc->powerc.temp      = (rx.data[3] << 8 | rx.data[2] << 0);
+
+        case MC_ID_STA:
+            break;
+
+        case MC_ID_ENC:
+            break;
 
         default:
             break;
     }
 }
 
-bool can_tx(uint32_t id, const uint8_t* data, uint8_t dlc) {
+bool can_tx(Txid_t id, const uint8_t* data, uint8_t dlc) {
     twai_message_t msg   = {};
     msg.identifier       = id;
     msg.extd             = 0;  // Standard ID
@@ -104,7 +110,22 @@ bool can_tx(uint32_t id, const uint8_t* data, uint8_t dlc) {
     return twai_transmit(&msg, pdMS_TO_TICKS(10)) == ESP_OK;
 }
 
+void pc_set_mode(Txid_t id, pc_mode_t mode) {
+    uint8_t buf[8];
+    buf[0] = mode;
+    can_tx(PC_SET_MODE, buf, 1);
+}
+
 void can_req(Txid_t id, Req_t req) {
     uint8_t buf[1] = {req};
     can_tx(id, buf, 1);
+}
+
+void can_tx_cmdvel(Cmd_vel_t cmd_vel) {
+    uint8_t buf[8];
+    buf[0] = (cmd_vel.m_left >> 0) & 0xFF;
+    buf[1] = (cmd_vel.m_left >> 8) & 0xFF;
+    buf[2] = (cmd_vel.m_right >> 0) & 0xFF;
+    buf[3] = (cmd_vel.m_right >> 8) & 0xFF;
+    can_tx(MC_CMD_VEL, buf, 4);
 }

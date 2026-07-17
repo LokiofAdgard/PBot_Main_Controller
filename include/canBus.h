@@ -6,13 +6,19 @@
 #include "structs.h"
 
 typedef enum {
-    CAN_ID_STA = 0x100,
-    CAN_ID_INA = 0x101
+    PC_ID_STA = 0x100,
+    PC_ID_INA = 0x101,
+
+    MC_ID_STA = 0x1F0,
+    MC_ID_ENC = 0x1F1
 } Rxid_t;
 
 typedef enum {
-    SET_MODE = 0x200,
-    DATA_REQ = 0x201
+    PC_SET_MODE = 0x200,
+    PC_DATA_REQ = 0x201,
+
+    MC_SET_MODE = 0x300,
+    MC_CMD_VEL  = 0x301
 } Txid_t;
 
 typedef enum {
@@ -22,6 +28,13 @@ typedef enum {
     SET_PWR_ON  = 0x03,
     SET_PWR_SAV = 0x04
 } Req_t;
+
+typedef enum {
+    MODE_INIT    = 0x00,
+    MODE_PWR_ON  = 0x01,
+    MODE_PWR_SAV = 0x02,
+    MODE_ERR     = 0x03
+} pc_mode_t;
 
 #define INA_SOL_ADDR  (0x40 << 1)
 #define INA_MPPT_ADDR (0x41 << 1)

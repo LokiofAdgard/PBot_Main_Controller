@@ -21,9 +21,9 @@ typedef enum {
 } MCErr_off_t;
 
 typedef struct {
-    float voltage;
-    float current;
-    float power;
+    int16_t voltage;
+    int16_t current;
+    int16_t power;
 } PBus_t;
 
 typedef struct {
@@ -44,7 +44,7 @@ typedef struct {
 
             uint16_t req : 4;
         } bits;
-        uint16_t raw;
+        int16_t raw;
     } state;
 
     PBus_t solar;
@@ -70,6 +70,9 @@ typedef struct {
     float x;
     float y;
     float theta;
+
+    uint16_t m_left;
+    uint16_t m_right;
 } Cmd_vel_t;
 
 class MController {
