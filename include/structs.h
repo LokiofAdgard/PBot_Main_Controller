@@ -1,6 +1,7 @@
 #ifndef STRUCTS_H
 #define STRUCTS_H
 
+#include <Adafruit_BNO055.h>
 #include <Arduino.h>
 
 typedef enum {
@@ -67,6 +68,13 @@ typedef struct {
 } MC_t;
 
 typedef struct {
+    int16_t w;
+    int16_t x;
+    int16_t y;
+    int16_t z;
+} quat_t;
+
+typedef struct {
     float x;
     float y;
     float theta;
@@ -83,10 +91,11 @@ class MController {
     void set_err(MCErr_off_t err, bool cls = false);
 
     public:
-    uint8_t   vbat;
-    Cmd_vel_t cmd_vel;
-    PC_t      powerc;
-    MC_t      motorc;
+    uint8_t          vbat;
+    Cmd_vel_t        cmd_vel;
+    PC_t             powerc;
+    MC_t             motorc;
+    Adafruit_BNO055* bno055;
 
     MCStatus_t init(void);
     MCStatus_t update(void);

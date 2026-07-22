@@ -9,6 +9,8 @@ volatile bool    per_ms100_flag = false;
 volatile bool    per_sec_flag   = false;
 volatile bool    per_sec10_flag = false;
 
+Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x29);
+
 void IRAM_ATTR on_per_ms10_timer() {
     per_ms10_flag = true;
     if (ms10_couter++ >= 10) {
@@ -53,15 +55,45 @@ void MController::set_err(MCErr_off_t err, bool cls) {
         this->err_reg |= (1 << err);
 }
 
+void readAcceleration() {
+    sensors_event_t accelEvent;
+    bno.getEvent(&accelEvent, Adafruit_BNO055::VECTOR_ACCELEROMETER);
+
+    Serial.print("Ax: ");
+    Serial.print(accelEvent.acceleration.x);
+    Serial.print(" Ay: ");
+    Serial.print(accelEvent.acceleration.y);
+    Serial.print(" Az: ");
+    Serial.println(accelEvent.acceleration.z);
+}
+
+void readQuaternion() {
+    imu::Quaternion quat = bno.getQuat();
+    Serial.print("W: ");
+    Serial.print(quat.w());
+    Serial.print(" X: ");
+    Serial.print(quat.x());
+    Serial.print(" Y: ");
+    Serial.print(quat.y());
+    Serial.print(" Z: ");
+    Serial.println(quat.z());
+}
+
 MCStatus_t MController::init(void) {
     per_sec_init();
     // mros_init(Serial);
     init_gpio();
     init_can();
+    Wire.begin(SDA2, SCL2);
+    bno.begin();
+    bno.setExtCrystalUse(true);
+    this->bno055 = &bno;
     return STATUS_OK;
 }
 
 MCStatus_t MController::update(void) {
+    // readAcceleration();
+    readQuaternion();
     return STATUS_OK;
 }
 

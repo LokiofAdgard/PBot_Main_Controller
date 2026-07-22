@@ -15,14 +15,14 @@ void loop() {
     // mros_spin();
 
     if (per_ms10_flag) {
-        mController.update();
     }
 
     if (per_ms100_flag) {
     }
-
+    
     if (per_sec_flag) {
         per_sec_flag = false;
+        mController.update();
         // if (mros_fail()) esp_restart();
         // char buffer[32];
         // sprintf(buffer, "%.2f", mController.cmd_vel.x);

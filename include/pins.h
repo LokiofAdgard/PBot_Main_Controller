@@ -18,8 +18,8 @@
 #define SCL1 GPIO_NUM_6
 #define SDA1 GPIO_NUM_7
 
-#define SCL2 GPIO_NUM_8
-#define SDA2 GPIO_NUM_3
+#define SCL2 GPIO_NUM_3
+#define SDA2 GPIO_NUM_8
 
 // SPI
 #define CSN  GPIO_NUM_9
