@@ -9,16 +9,17 @@ typedef enum {
     PC_ID_STA = 0x100,
     PC_ID_INA = 0x101,
 
-    MC_ID_STA = 0x1F0,
-    MC_ID_ENC = 0x1F1
+    MC_ID_STA = 0x300,
+    MC_ID_ENC = 0x301
 } Rxid_t;
 
 typedef enum {
     PC_SET_MODE = 0x200,
     PC_DATA_REQ = 0x201,
-
-    MC_SET_MODE = 0x300,
-    MC_CMD_VEL  = 0x301
+    
+    MC_SET_MODE = 0x400,
+    MC_DATA_REQ = 0x401,
+    MC_CMD_VEL  = 0x402
 } Txid_t;
 
 typedef enum {
@@ -50,5 +51,6 @@ void init_can(void);
 void can_update(MController* mc);
 bool can_tx(uint32_t id, const uint8_t* data, uint8_t dlc);
 void can_req(Txid_t id, Req_t req);
+void can_tx_cmdvel(Cmd_vel_t cmd_vel);
 
 #endif

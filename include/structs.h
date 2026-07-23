@@ -79,8 +79,8 @@ typedef struct {
     float y;
     float theta;
 
-    uint16_t m_left;
-    uint16_t m_right;
+    int16_t m_left;
+    int16_t m_right;
 } Cmd_vel_t;
 
 class MController {

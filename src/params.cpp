@@ -59,29 +59,29 @@ void readAcceleration() {
     sensors_event_t accelEvent;
     bno.getEvent(&accelEvent, Adafruit_BNO055::VECTOR_ACCELEROMETER);
 
-    Serial.print("Ax: ");
-    Serial.print(accelEvent.acceleration.x);
-    Serial.print(" Ay: ");
-    Serial.print(accelEvent.acceleration.y);
-    Serial.print(" Az: ");
-    Serial.println(accelEvent.acceleration.z);
+    // Serial.print("Ax: ");
+    // Serial.print(accelEvent.acceleration.x);
+    // Serial.print(" Ay: ");
+    // Serial.print(accelEvent.acceleration.y);
+    // Serial.print(" Az: ");
+    // Serial.println(accelEvent.acceleration.z);
 }
 
 void readQuaternion() {
     imu::Quaternion quat = bno.getQuat();
-    Serial.print("W: ");
-    Serial.print(quat.w());
-    Serial.print(" X: ");
-    Serial.print(quat.x());
-    Serial.print(" Y: ");
-    Serial.print(quat.y());
-    Serial.print(" Z: ");
-    Serial.println(quat.z());
+    // Serial.print("W: ");
+    // Serial.print(quat.w());
+    // Serial.print(" X: ");
+    // Serial.print(quat.x());
+    // Serial.print(" Y: ");
+    // Serial.print(quat.y());
+    // Serial.print(" Z: ");
+    // Serial.println(quat.z());
 }
 
 MCStatus_t MController::init(void) {
     per_sec_init();
-    // mros_init(Serial);
+    mros_init(Serial);
     init_gpio();
     init_can();
     Wire.begin(SDA2, SCL2);
@@ -98,9 +98,12 @@ MCStatus_t MController::update(void) {
 }
 
 MCStatus_t MController::mrosGetUpdate(void) {
-    this->cmd_vel.x     = mros_get_cmd_vel_lin_x();
-    this->cmd_vel.y     = mros_get_cmd_vel_lin_y();
-    this->cmd_vel.theta = mros_get_cmd_vel_ang_z();
+    // this->cmd_vel.x     = mros_get_cmd_vel_lin_x();
+    // this->cmd_vel.y     = mros_get_cmd_vel_lin_y();
+    // this->cmd_vel.theta = mros_get_cmd_vel_ang_z();
+
+    this->cmd_vel.m_left  = mros_get_motor_l();
+    this->cmd_vel.m_right = mros_get_motor_r();
 
     return STATUS_OK;
 }

@@ -1,39 +1,17 @@
 #include "canBus.h"
 
+extern MController mController;
+
 volatile bool  can_available = false;
 twai_message_t rx;
 
 void can_rx_task(void* arg);
 
-// bool can_query_id(uint32_t id, uint32_t timeout_ms) {
-//     twai_message_t rtr   = {};
-//     rtr.identifier       = id;
-//     rtr.extd             = 0;
-//     rtr.rtr              = 1;
-//     rtr.data_length_code = 0;
-
-//     if (twai_transmit(&rtr, pdMS_TO_TICKS(10)) != ESP_OK) {
-//         return false;
-//     }
-
-//     uint32_t       start = millis();
-//     twai_message_t resp;
-
-//     while (millis() - start < timeout_ms) {
-//         if (twai_receive(&resp, pdMS_TO_TICKS(10)) == ESP_OK) {
-//             if (!resp.rtr && resp.identifier == id) {
-//                 return true;
-//             }
-//         }
-//     }
-
-//     return false;
-// }
-
 void can_rx_task(void* arg) {
     while (true) {
         if (twai_receive(&rx, portMAX_DELAY) == ESP_OK && !rx.rtr) {
             can_available = true;
+            can_update(&mController);
         }
     }
 }
@@ -51,20 +29,14 @@ void init_can() {
 
     err = twai_driver_install(&g_config, &t_config, &f_config);
     err = twai_start();
-    // if (err == ESP_OK) {
-    // } else {
-    // }
+
     xTaskCreate(can_rx_task, "CAN_RX", 2048, NULL, 20, NULL);
 }
 
 void can_update(MController* mc) {
-    // if (twai_receive(&rx, 0) != ESP_OK) return;
-    // if (rx.rtr) return;
-
     switch (rx.identifier) {
         case PC_ID_INA:
             PBus_t* bus;
-            neopixelWrite(48, 0x00, 0x00, 0x04);
             switch (rx.data[6]) {
                 case INA_SOL_ADDR:
                     bus = &mc->powerc.solar;
@@ -82,7 +54,6 @@ void can_update(MController* mc) {
             break;
 
         case PC_ID_STA:
-            neopixelWrite(48, 0x04, 0x00, 0x00);
             mc->powerc.state.raw = (rx.data[1] << 8 | rx.data[0] << 0);
             mc->powerc.temp      = (rx.data[3] << 8 | rx.data[2] << 0);
 
@@ -123,9 +94,9 @@ void can_req(Txid_t id, Req_t req) {
 
 void can_tx_cmdvel(Cmd_vel_t cmd_vel) {
     uint8_t buf[8];
-    buf[0] = (cmd_vel.m_left >> 0) & 0xFF;
-    buf[1] = (cmd_vel.m_left >> 8) & 0xFF;
-    buf[2] = (cmd_vel.m_right >> 0) & 0xFF;
-    buf[3] = (cmd_vel.m_right >> 8) & 0xFF;
+    buf[0] = (uint8_t)((cmd_vel.m_left >> 0) & 0xFF);
+    buf[1] = (uint8_t)((cmd_vel.m_left >> 8) & 0xFF);
+    buf[2] = (uint8_t)((cmd_vel.m_right >> 0) & 0xFF);
+    buf[3] = (uint8_t)((cmd_vel.m_right >> 8) & 0xFF);
     can_tx(MC_CMD_VEL, buf, 4);
 }
