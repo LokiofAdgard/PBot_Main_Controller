@@ -30,6 +30,7 @@ void loop() {
         sprintf(buffer, "%.2f", mController.cmd_vel.x);
         mros_debug(buffer);
         mros_publish_pc(&mController.powerc);
+        mros_publish_mc(&mController.motorc);
 
         // can_req(PC_DATA_REQ, GET_STAT);
         can_req(PC_DATA_REQ, GET_ALL);

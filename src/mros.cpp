@@ -6,6 +6,7 @@
 #include <rclc/rclc.h>
 #include <rosidl_runtime_c/string_functions.h>
 #include <std_msgs/msg/int16_multi_array.h>
+#include <std_msgs/msg/int32_multi_array.h>
 #include <std_msgs/msg/string.h>
 #include <std_msgs/msg/u_int16_multi_array.h>
 
@@ -21,10 +22,12 @@ static rclc_executor_t executor;
 // Publishers
 static rcl_publisher_t debug_publisher;
 static rcl_publisher_t pc_publisher;
+static rcl_publisher_t mc_publisher;
 
 // Messages
 static std_msgs__msg__String           debug_msg;
 static std_msgs__msg__UInt16MultiArray pc_msg;
+static std_msgs__msg__Int32MultiArray  mc_msg;
 
 // Subscriber
 static rcl_subscription_t             cmd_vel_sub;
@@ -132,7 +135,23 @@ void mros_init(HardwareSerial& serial) {
         &pc_publisher,
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, UInt16MultiArray),
-        "pc_bus"));
+        "raw/pc"));
+
+    //----------------------------------------------------------
+    // Encoder Int32MultiArray publisher
+    //----------------------------------------------------------
+
+    std_msgs__msg__Int32MultiArray__init(&mc_msg);
+
+    mc_msg.data.capacity = 5;
+    mc_msg.data.size     = 5;
+    mc_msg.data.data     = (int32_t*)malloc(sizeof(int32_t) * 5);
+
+    RCCHECK(rclc_publisher_init_default(
+        &mc_publisher,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32MultiArray),
+        "raw/mc"));
 
     //----------------------------------------------------------
     // Executor
@@ -191,6 +210,16 @@ void mros_publish_pc(const PC_t* pc) {
     d[18] = (uint16_t)(pc->temp);
 
     RCSOFTCHECK(rcl_publish(&pc_publisher, &pc_msg, NULL));
+}
+
+void mros_publish_mc(const MC_t* mc) {
+    mc_msg.data.data[0] = mc->enc_m1;
+    mc_msg.data.data[1] = mc->enc_m2;
+    mc_msg.data.data[2] = mc->enc_m3;
+    mc_msg.data.data[3] = mc->enc_m4;
+    mc_msg.data.data[4] = (uint16_t)(mc->temp);
+
+    RCSOFTCHECK(rcl_publish(&mc_publisher, &mc_msg, NULL));
 }
 
 //------------------------------------------------------------------------------

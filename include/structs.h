@@ -59,7 +59,7 @@ typedef struct {
 } PC_t;
 
 typedef struct {
-    uint8_t temp;
+    uint16_t temp;
 
     int32_t enc_m1;
     int32_t enc_m2;
