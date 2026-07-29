@@ -96,9 +96,14 @@ class MController {
     PC_t             powerc;
     MC_t             motorc;
     Adafruit_BNO055* bno055;
+    imu::Quaternion  imu_quat;
+    imu::Vector<3>   imu_accel;
+    imu::Vector<3>   imu_gyro;
+    uint8_t          mag_cal;
 
     MCStatus_t init(void);
     MCStatus_t update(void);
+    MCStatus_t updateBNO(void);
 
     MCStatus_t mrosGetUpdate(void);
 

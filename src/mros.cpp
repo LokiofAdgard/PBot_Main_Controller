@@ -5,6 +5,7 @@
 #include <rclc/executor.h>
 #include <rclc/rclc.h>
 #include <rosidl_runtime_c/string_functions.h>
+#include <std_msgs/msg/float32_multi_array.h>
 #include <std_msgs/msg/int16_multi_array.h>
 #include <std_msgs/msg/int32_multi_array.h>
 #include <std_msgs/msg/string.h>
@@ -23,11 +24,13 @@ static rclc_executor_t executor;
 static rcl_publisher_t debug_publisher;
 static rcl_publisher_t pc_publisher;
 static rcl_publisher_t mc_publisher;
+static rcl_publisher_t imu_publisher;
 
 // Messages
-static std_msgs__msg__String           debug_msg;
-static std_msgs__msg__UInt16MultiArray pc_msg;
-static std_msgs__msg__Int32MultiArray  mc_msg;
+static std_msgs__msg__String            debug_msg;
+static std_msgs__msg__UInt16MultiArray  pc_msg;
+static std_msgs__msg__Int32MultiArray   mc_msg;
+static std_msgs__msg__Float32MultiArray imu_msg;
 
 // Subscriber
 static rcl_subscription_t             cmd_vel_sub;
@@ -78,7 +81,7 @@ static void cmd_vel_callback(const void* msgin) {
 //------------------------------------------------------------------------------
 
 void mros_init(HardwareSerial& serial) {
-    serial.begin(115200);
+    serial.begin(1000000);
     set_microros_serial_transports(serial);
     delay(1000);
 
@@ -127,9 +130,9 @@ void mros_init(HardwareSerial& serial) {
 
     std_msgs__msg__UInt16MultiArray__init(&pc_msg);
 
-    pc_msg.data.capacity = 19;
-    pc_msg.data.size     = 19;
-    pc_msg.data.data     = (uint16_t*)malloc(sizeof(uint16_t) * 19);
+    pc_msg.data.capacity = 20;
+    pc_msg.data.size     = 20;
+    pc_msg.data.data     = (uint16_t*)malloc(sizeof(uint16_t) * 20);
 
     RCCHECK(rclc_publisher_init_default(
         &pc_publisher,
@@ -152,6 +155,22 @@ void mros_init(HardwareSerial& serial) {
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32MultiArray),
         "raw/mc"));
+
+    //----------------------------------------------------------
+    // IMU Float32MultiArray publisher (10 values)
+    //----------------------------------------------------------
+
+    std_msgs__msg__Float32MultiArray__init(&imu_msg);
+
+    imu_msg.data.capacity = 11;
+    imu_msg.data.size     = 11;
+    imu_msg.data.data     = (float*)malloc(sizeof(float) * 11);
+
+    RCCHECK(rclc_publisher_init_default(
+        &imu_publisher,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32MultiArray),
+        "raw/imu"));
 
     //----------------------------------------------------------
     // Executor
@@ -208,6 +227,7 @@ void mros_publish_pc(const PC_t* pc) {
     d[17] = (uint16_t)(pc->v12b.power);
 
     d[18] = (uint16_t)(pc->temp);
+    d[19] = (uint16_t)(pc->state.raw);
 
     RCSOFTCHECK(rcl_publish(&pc_publisher, &pc_msg, NULL));
 }
@@ -220,6 +240,31 @@ void mros_publish_mc(const MC_t* mc) {
     mc_msg.data.data[4] = (uint16_t)(mc->temp);
 
     RCSOFTCHECK(rcl_publish(&mc_publisher, &mc_msg, NULL));
+}
+
+void mros_publish_imu(const MController* mc) {
+    float* d = imu_msg.data.data;
+
+    // Quaternion
+    d[0] = mc->imu_quat.w();
+    d[1] = mc->imu_quat.x();
+    d[2] = mc->imu_quat.y();
+    d[3] = mc->imu_quat.z();
+
+    // Linear acceleration (m/s^2)
+    d[4] = mc->imu_accel.x();
+    d[5] = mc->imu_accel.y();
+    d[6] = mc->imu_accel.z();
+
+    // Gyroscope (rad/s)
+    d[7] = mc->imu_gyro.x();
+    d[8] = mc->imu_gyro.y();
+    d[9] = mc->imu_gyro.z();
+
+    // Mag Calibration
+    d[10] = mc->mag_cal;
+
+    RCSOFTCHECK(rcl_publish(&imu_publisher, &imu_msg, NULL));
 }
 
 //------------------------------------------------------------------------------

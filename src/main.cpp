@@ -15,16 +15,22 @@ void loop() {
     mros_spin();
 
     if (per_ms10_flag) {
+        per_ms10_flag = false;
+
         mController.mrosGetUpdate();
     }
 
     if (per_ms100_flag) {
+        per_ms100_flag = false;
+
         can_tx_cmdvel(mController.cmd_vel);
+        mController.update();
+        mros_publish_imu(&mController);
     }
 
     if (per_sec_flag) {
         per_sec_flag = false;
-        mController.update();
+
         if (mros_fail()) esp_restart();
         char buffer[32];
         sprintf(buffer, "%.2f", mController.cmd_vel.x);

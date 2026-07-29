@@ -11,6 +11,23 @@ volatile bool    per_sec10_flag = false;
 
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x29);
 
+adafruit_bno055_offsets_t savedOffsets = {
+    .accel_offset_x = 1,
+    .accel_offset_y = -2,
+    .accel_offset_z = 20,
+
+    .mag_offset_x = -908,
+    .mag_offset_y = 1492,
+    .mag_offset_z = 322,
+
+    .gyro_offset_x = -3,
+    .gyro_offset_y = -3,
+    .gyro_offset_z = 0,
+
+    .accel_radius = 1000,
+    .mag_radius   = 756,
+};
+
 void IRAM_ATTR on_per_ms10_timer() {
     per_ms10_flag = true;
     if (ms10_couter++ >= 10) {
@@ -55,28 +72,15 @@ void MController::set_err(MCErr_off_t err, bool cls) {
         this->err_reg |= (1 << err);
 }
 
-void readAcceleration() {
-    sensors_event_t accelEvent;
-    bno.getEvent(&accelEvent, Adafruit_BNO055::VECTOR_ACCELEROMETER);
+MCStatus_t MController::updateBNO(void) {
+    bno055->getCalibration(nullptr, nullptr, nullptr, &mag_cal);
 
-    // Serial.print("Ax: ");
-    // Serial.print(accelEvent.acceleration.x);
-    // Serial.print(" Ay: ");
-    // Serial.print(accelEvent.acceleration.y);
-    // Serial.print(" Az: ");
-    // Serial.println(accelEvent.acceleration.z);
-}
+    // Read IMU values
+    imu_quat  = bno055->getQuat();
+    imu_accel = bno055->getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+    imu_gyro  = bno055->getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
 
-void readQuaternion() {
-    imu::Quaternion quat = bno.getQuat();
-    // Serial.print("W: ");
-    // Serial.print(quat.w());
-    // Serial.print(" X: ");
-    // Serial.print(quat.x());
-    // Serial.print(" Y: ");
-    // Serial.print(quat.y());
-    // Serial.print(" Z: ");
-    // Serial.println(quat.z());
+    return STATUS_OK;
 }
 
 MCStatus_t MController::init(void) {
@@ -86,14 +90,15 @@ MCStatus_t MController::init(void) {
     init_can();
     Wire.begin(SDA2, SCL2);
     bno.begin();
+    bno.setMode(OPERATION_MODE_IMUPLUS);
     bno.setExtCrystalUse(true);
+    bno.setSensorOffsets(savedOffsets);
     this->bno055 = &bno;
     return STATUS_OK;
 }
 
 MCStatus_t MController::update(void) {
-    // readAcceleration();
-    readQuaternion();
+    updateBNO();
     return STATUS_OK;
 }
 
