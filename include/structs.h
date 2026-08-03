@@ -3,6 +3,7 @@
 
 #include <Adafruit_BNO055.h>
 #include <Arduino.h>
+#include <SparkFun_VL53L5CX_Library.h>
 
 typedef enum {
     STATE_INIT   = 0x00,
@@ -91,15 +92,19 @@ class MController {
     void set_err(MCErr_off_t err, bool cls = false);
 
     public:
-    uint8_t          vbat;
-    Cmd_vel_t        cmd_vel;
-    PC_t             powerc;
-    MC_t             motorc;
+    uint8_t   vbat;
+    Cmd_vel_t cmd_vel;
+    PC_t      powerc;
+    MC_t      motorc;
+
     Adafruit_BNO055* bno055;
     imu::Quaternion  imu_quat;
     imu::Vector<3>   imu_accel;
     imu::Vector<3>   imu_gyro;
     uint8_t          mag_cal;
+
+    uint16_t             tof_data[3];
+    VL53L5CX_ResultsData measurementData;
 
     MCStatus_t init(void);
     MCStatus_t update(void);

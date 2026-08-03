@@ -9,7 +9,15 @@ volatile bool    per_ms100_flag = false;
 volatile bool    per_sec_flag   = false;
 volatile bool    per_sec10_flag = false;
 
-Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x29);
+bool mTof_avl = false;
+
+TwoWire i2c1 = TwoWire(0);
+TwoWire i2c2 = TwoWire(1);
+
+Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x29, &i2c2);
+
+SparkFun_VL53L5CX mTof;
+// VL53L0X sensor;
 
 adafruit_bno055_offsets_t savedOffsets = {
     .accel_offset_x = 1,
@@ -88,17 +96,29 @@ MCStatus_t MController::init(void) {
     mros_init(Serial);
     init_gpio();
     init_can();
-    Wire.begin(SDA2, SCL2);
+
+    i2c1.begin(SDA1, SCL1);
+    i2c2.begin(SDA2, SCL2);
+
     bno.begin();
     bno.setMode(OPERATION_MODE_IMUPLUS);
     bno.setExtCrystalUse(true);
     bno.setSensorOffsets(savedOffsets);
     this->bno055 = &bno;
+
+    if (mTof.begin(MTOF_ADDR, i2c1)) {
+        mTof.setResolution(8 * 8);
+        mTof.setRangingFrequency(10);
+        mTof.startRanging();
+        mTof_avl = true;
+    }
+
     return STATUS_OK;
 }
 
 MCStatus_t MController::update(void) {
     updateBNO();
+    if (mTof_avl) mTof_avl = mTof.getRangingData(&measurementData);
     return STATUS_OK;
 }
 

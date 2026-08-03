@@ -25,12 +25,14 @@ static rcl_publisher_t debug_publisher;
 static rcl_publisher_t pc_publisher;
 static rcl_publisher_t mc_publisher;
 static rcl_publisher_t imu_publisher;
+static rcl_publisher_t tof_publisher;
 
 // Messages
 static std_msgs__msg__String            debug_msg;
 static std_msgs__msg__UInt16MultiArray  pc_msg;
 static std_msgs__msg__Int32MultiArray   mc_msg;
 static std_msgs__msg__Float32MultiArray imu_msg;
+static std_msgs__msg__UInt16MultiArray  tof_msg;
 
 // Subscriber
 static rcl_subscription_t             cmd_vel_sub;
@@ -173,6 +175,22 @@ void mros_init(HardwareSerial& serial) {
         "raw/imu"));
 
     //----------------------------------------------------------
+    // ToF UInt16MultiArray publisher (64 values for 8x8)
+    //----------------------------------------------------------
+
+    std_msgs__msg__UInt16MultiArray__init(&tof_msg);
+
+    tof_msg.data.capacity = 64;
+    tof_msg.data.size     = 64;
+    tof_msg.data.data     = (uint16_t*)malloc(sizeof(uint16_t) * 64);
+
+    RCCHECK(rclc_publisher_init_default(
+        &tof_publisher,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, UInt16MultiArray),
+        "raw/tof"));
+
+    //----------------------------------------------------------
     // Executor
     //----------------------------------------------------------
 
@@ -265,6 +283,16 @@ void mros_publish_imu(const MController* mc) {
     d[10] = mc->mag_cal;
 
     RCSOFTCHECK(rcl_publish(&imu_publisher, &imu_msg, NULL));
+}
+
+void mros_publish_tof(const MController* mc) {
+    uint16_t* d = tof_msg.data.data;
+
+    for (int i = 0; i < 64; i++) {
+        d[i] = (uint16_t)mc->measurementData.distance_mm[i];
+    }
+
+    RCSOFTCHECK(rcl_publish(&tof_publisher, &tof_msg, NULL));
 }
 
 //------------------------------------------------------------------------------

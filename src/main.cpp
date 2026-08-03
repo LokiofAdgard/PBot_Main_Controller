@@ -5,10 +5,10 @@
 MController mController;
 
 void setup() {
-    neopixelWrite(48, 0x00, 0x04, 0x00);
-    init_can();
+    neopixelWrite(LED_RGB, 0x00, 0x00, 0x00);
     // Serial.begin(115200);
     mController.init();
+    neopixelWrite(LED_RGB, 0x00, 0x04, 0x00);
 }
 
 void loop() {
@@ -26,6 +26,7 @@ void loop() {
         can_tx_cmdvel(mController.cmd_vel);
         mController.update();
         mros_publish_imu(&mController);
+        mros_publish_tof(&mController);
     }
 
     if (per_sec_flag) {
@@ -40,7 +41,7 @@ void loop() {
 
         // can_req(PC_DATA_REQ, GET_STAT);
         can_req(PC_DATA_REQ, GET_ALL);
-        // can_req(MC_DATA_REQ, GET_ALL);
+        can_req(MC_DATA_REQ, GET_ALL);
     }
 
     if (per_sec10_flag) {

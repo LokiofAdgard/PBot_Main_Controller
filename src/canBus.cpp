@@ -56,8 +56,10 @@ void can_update(MController* mc) {
         case PC_ID_STA:
             mc->powerc.state.raw = (rx.data[1] << 8 | rx.data[0] << 0);
             mc->powerc.temp      = (rx.data[3] << 8 | rx.data[2] << 0);
+            break;
 
         case MC_ID_STA:
+            mc->motorc.temp = (rx.data[3] << 8 | rx.data[2]);
             break;
 
         case MC_ID_ENC:

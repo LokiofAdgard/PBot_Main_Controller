@@ -15,8 +15,8 @@
 #define RX_2 GPIO_NUM_39
 
 // I2C
-#define SCL1 GPIO_NUM_6
-#define SDA1 GPIO_NUM_7
+#define SDA1 GPIO_NUM_6
+#define SCL1 GPIO_NUM_7
 
 #define SCL2 GPIO_NUM_3
 #define SDA2 GPIO_NUM_8
