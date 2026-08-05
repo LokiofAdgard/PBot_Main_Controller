@@ -21,6 +21,10 @@
 #define SCL2 GPIO_NUM_3
 #define SDA2 GPIO_NUM_8
 
+#define XSHUT_F GPIO_NUM_40
+#define XSHUT_B GPIO_NUM_39
+#define XSHUT_L GPIO_NUM_21
+
 // SPI
 #define CSN  GPIO_NUM_9
 #define MOSI GPIO_NUM_10

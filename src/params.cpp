@@ -17,7 +17,10 @@ TwoWire i2c2 = TwoWire(1);
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x29, &i2c2);
 
 SparkFun_VL53L5CX mTof;
-// VL53L0X sensor;
+
+VL53L0X tof_f;
+VL53L0X tof_b;
+VL53L0X tof_l;
 
 adafruit_bno055_offsets_t savedOffsets = {
     .accel_offset_x = 1,
@@ -113,12 +116,44 @@ MCStatus_t MController::init(void) {
         mTof_avl = true;
     }
 
+    pinMode(XSHUT_F, OUTPUT);
+    pinMode(XSHUT_B, OUTPUT);
+    pinMode(XSHUT_L, OUTPUT);
+
+    digitalWrite(XSHUT_F, LOW);
+    digitalWrite(XSHUT_B, LOW);
+    digitalWrite(XSHUT_L, LOW);
+    delay(10);
+
+    digitalWrite(XSHUT_F, HIGH);
+    delay(10);
+    tof_f.setBus(&i2c1);
+    if (tof_f.init()) tof_f.startContinuous();
+    tof_f.setAddress(TOF_F_ADDR);
+
+    digitalWrite(XSHUT_B, HIGH);
+    delay(10);
+    tof_b.setBus(&i2c1);
+    if (tof_b.init()) tof_b.startContinuous();
+    tof_b.setAddress(TOF_B_ADDR);
+
+    digitalWrite(XSHUT_L, HIGH);
+    delay(10);
+    tof_l.setBus(&i2c1);
+    if (tof_l.init()) tof_l.startContinuous();
+    tof_l.setAddress(TOF_L_ADDR);
+
     return STATUS_OK;
 }
 
 MCStatus_t MController::update(void) {
     updateBNO();
     if (mTof_avl) mTof_avl = mTof.getRangingData(&measurementData);
+    tof_data[0] = tof_f.readRangeContinuousMillimeters();
+    tof_data[1] = tof_b.readRangeContinuousMillimeters();
+    ;
+    tof_data[2] = tof_l.readRangeContinuousMillimeters();
+    ;
     return STATUS_OK;
 }
 

@@ -180,9 +180,9 @@ void mros_init(HardwareSerial& serial) {
 
     std_msgs__msg__UInt16MultiArray__init(&tof_msg);
 
-    tof_msg.data.capacity = 64;
-    tof_msg.data.size     = 64;
-    tof_msg.data.data     = (uint16_t*)malloc(sizeof(uint16_t) * 64);
+    tof_msg.data.capacity = 67;
+    tof_msg.data.size     = 67;
+    tof_msg.data.data     = (uint16_t*)malloc(sizeof(uint16_t) * 67);
 
     RCCHECK(rclc_publisher_init_default(
         &tof_publisher,
@@ -291,6 +291,10 @@ void mros_publish_tof(const MController* mc) {
     for (int i = 0; i < 64; i++) {
         d[i] = (uint16_t)mc->measurementData.distance_mm[i];
     }
+
+    d[64] = mc->tof_data[0];
+    d[65] = mc->tof_data[1];
+    d[66] = mc->tof_data[2];
 
     RCSOFTCHECK(rcl_publish(&tof_publisher, &tof_msg, NULL));
 }
