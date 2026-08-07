@@ -49,6 +49,9 @@ static int16_t motor_r = 0;
 //------------------------------------------------------------------------------
 
 static void error_loop() {
+#ifdef WIFI_MODE
+    return;
+#endif
     delay(1000);
     esp_restart();
 }
@@ -87,13 +90,16 @@ static void cmd_vel_callback(const void* msgin) {
 //------------------------------------------------------------------------------
 
 void mros_init(HardwareSerial& serial) {
+#ifdef WIFI_MODE
+    return;
+#endif
     serial.begin(1000000);
     set_microros_serial_transports(serial);
     delay(1000);
 
     allocator = rcl_get_default_allocator();
 
-    while (!mros_fail()) delay(1000);
+    while (mros_fail()) delay(1000);
 
     RCCHECK(rclc_support_init(&support, 0, NULL, &allocator));
     RCCHECK(rclc_node_init_default(
@@ -209,12 +215,18 @@ void mros_init(HardwareSerial& serial) {
 }
 
 void mros_spin() {
+#ifdef WIFI_MODE
+    return;
+#endif
     RCSOFTCHECK(rclc_executor_spin_some(
         &executor,
         RCL_MS_TO_NS(10)));
 }
 
 void mros_debug(const char* text) {
+#ifdef WIFI_MODE
+    return;
+#endif
     if (!rosidl_runtime_c__String__assign(&debug_msg.data, text))
         return;
 
@@ -222,6 +234,9 @@ void mros_debug(const char* text) {
 }
 
 void mros_publish_pc(const PC_t* pc) {
+#ifdef WIFI_MODE
+    return;
+#endif
     uint16_t* d = pc_msg.data.data;
 
     d[0] = (uint16_t)(pc->solar.voltage);
@@ -255,6 +270,9 @@ void mros_publish_pc(const PC_t* pc) {
 }
 
 void mros_publish_mc(const MC_t* mc) {
+#ifdef WIFI_MODE
+    return;
+#endif
     mc_msg.data.data[0] = mc->enc_m1;
     mc_msg.data.data[1] = mc->enc_m2;
     mc_msg.data.data[2] = mc->enc_m3;
@@ -266,6 +284,9 @@ void mros_publish_mc(const MC_t* mc) {
 }
 
 void mros_publish_imu(const MController* mc) {
+#ifdef WIFI_MODE
+    return;
+#endif
     float* d = imu_msg.data.data;
 
     // Quaternion
@@ -291,6 +312,9 @@ void mros_publish_imu(const MController* mc) {
 }
 
 void mros_publish_tof(const MController* mc) {
+#ifdef WIFI_MODE
+    return;
+#endif
     uint16_t* d = tof_msg.data.data;
 
     for (int i = 0; i < 64; i++) {
@@ -312,5 +336,8 @@ int16_t mros_get_motor_l() { return motor_l; }
 int16_t mros_get_motor_r() { return motor_r; }
 
 bool mros_fail() {
+#ifdef WIFI_MODE
+    return false;
+#endif
     return (rmw_uros_ping_agent(100, 2) != RMW_RET_OK);
 }

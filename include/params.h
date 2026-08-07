@@ -11,6 +11,10 @@
 #include "pins.h"
 #include "structs.h"
 
+#ifdef WIFI_MODE
+#    include "server.h"
+#endif
+
 #define MTOF_ADDR  41U
 #define TOF_F_ADDR 0x30
 #define TOF_B_ADDR 0x31

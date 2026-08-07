@@ -179,6 +179,10 @@ MCStatus_t MController::init(void) {
     if (tof_l.init()) tof_l.startContinuous();
     tof_l.setAddress(TOF_L_ADDR);
 
+#ifdef WIFI_MODE
+    server_init();
+#endif
+
     return STATUS_OK;
 }
 

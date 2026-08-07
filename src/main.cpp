@@ -6,7 +6,6 @@ MController mController;
 
 void setup() {
     neopixelWrite(LED_RGB, 0x00, 0x00, 0x00);
-    // Serial.begin(115200);
     mController.init();
     neopixelWrite(LED_RGB, 0x00, 0x04, 0x00);
 }

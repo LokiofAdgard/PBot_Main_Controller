@@ -5,6 +5,8 @@
 #include <Arduino.h>
 #include <SparkFun_VL53L5CX_Library.h>
 
+// #define WIFI_MODE
+
 typedef enum {
     STATE_INIT   = 0x00,
     STATE_ACTIVE = 0x01
@@ -60,7 +62,7 @@ typedef struct {
     PBus_t v12b;
 
     uint16_t temp;
-    uint8_t timeout_c;
+    uint8_t  timeout_c;
 } PC_t;
 
 typedef struct {
