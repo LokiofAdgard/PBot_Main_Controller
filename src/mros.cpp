@@ -11,6 +11,8 @@
 #include <std_msgs/msg/string.h>
 #include <std_msgs/msg/u_int16_multi_array.h>
 
+extern MController mController;
+
 //------------------------------------------------------------------------------
 // Globals
 //------------------------------------------------------------------------------
@@ -75,6 +77,8 @@ static void cmd_vel_callback(const void* msgin) {
     if (msg->data.size >= 2) {
         motor_l = msg->data.data[0];
         motor_r = msg->data.data[1];
+
+        mController.cmd_vel.timeout_c = 0;
     }
 }
 

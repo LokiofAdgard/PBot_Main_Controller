@@ -63,16 +63,20 @@ void can_update(MController* mc) {
             bus->voltage = (rx.data[1] << 8 | rx.data[0]);
             bus->current = (rx.data[3] << 8 | rx.data[2]);
             bus->power   = (rx.data[5] << 8 | rx.data[4]);
+
+            bus->timeout_c = 0;
             break;
 
         case PC_ID_STA:
             mc->powerc.state.raw = (rx.data[1] << 8 | rx.data[0] << 0);
             mc->powerc.temp      = (rx.data[3] << 8 | rx.data[2] << 0);
+            mc->powerc.timeout_c = 0;
             break;
 
         case MC_ID_STA:
-            mc->powerc.state.raw = (rx.data[1] << 8 | rx.data[0] << 0);
+            mc->motorc.state.raw = (rx.data[1] << 8 | rx.data[0] << 0);
             mc->motorc.temp      = (rx.data[3] << 8 | rx.data[2] << 0);
+            mc->motorc.timeout_c = 0;
             break;
 
         case MC_ID_ENC:

@@ -11,7 +11,8 @@ typedef enum {
 } MCState_t;
 
 typedef enum {
-    STATUS_OK = 0x00
+    STATUS_OK = 0x00,
+    STATUS_TO = 0x01
 } MCStatus_t;
 
 typedef enum {
@@ -26,6 +27,8 @@ typedef struct {
     int16_t voltage;
     int16_t current;
     int16_t power;
+
+    uint8_t timeout_c;
 } PBus_t;
 
 typedef struct {
@@ -57,6 +60,7 @@ typedef struct {
     PBus_t v12b;
 
     uint16_t temp;
+    uint8_t timeout_c;
 } PC_t;
 
 typedef struct {
@@ -78,6 +82,8 @@ typedef struct {
     int32_t enc_m2;
     int32_t enc_m3;
     int32_t enc_m4;
+
+    uint8_t timeout_c;
 } MC_t;
 
 typedef struct {
@@ -94,6 +100,8 @@ typedef struct {
 
     int16_t m_left;
     int16_t m_right;
+
+    uint8_t timeout_c;
 } Cmd_vel_t;
 
 class MController {

@@ -72,6 +72,42 @@ void init_gpio() {
     // pinMode(LED_STR, OUTPUT);
 }
 
+void inaTimeout(PBus_t* bus) {
+    if (bus->timeout_c > 40) return;
+    if (bus->timeout_c++ >= 30) {
+        bus->voltage = 0;
+        bus->current = 0;
+        bus->power   = 0;
+    }
+}
+
+void pc_timeout(PC_t* pc) {
+    inaTimeout(&pc->solar);
+    inaTimeout(&pc->mppt);
+    inaTimeout(&pc->bat);
+    inaTimeout(&pc->v5);
+    inaTimeout(&pc->v12a);
+    inaTimeout(&pc->v12b);
+
+    if (pc->timeout_c > PC_TIMEOUT + 10) return;
+    if (pc->timeout_c++ >= PC_TIMEOUT) {
+        pc->state.raw = 0;
+        pc->temp      = 0;
+    }
+}
+
+void mc_timeout(MC_t* mc) {
+    if (mc->timeout_c > MC_TIMEOUT) return;
+    if (mc->timeout_c++ >= MC_TIMEOUT) {
+        mc->state.raw = 0;
+        mc->temp      = 0;
+        // mc->enc_m1 = 0;
+        // mc->enc_m2 = 0;
+        // mc->enc_m3 = 0;
+        // mc->enc_m4 = 0;
+    }
+}
+
 void MController::set_err(MCErr_off_t err, bool cls) {
     if (err == ERR_CLS) {
         err_reg = 0x00;
@@ -151,9 +187,11 @@ MCStatus_t MController::update(void) {
     if (mTof_avl) mTof_avl = mTof.getRangingData(&measurementData);
     tof_data[0] = tof_f.readRangeContinuousMillimeters();
     tof_data[1] = tof_b.readRangeContinuousMillimeters();
-    ;
     tof_data[2] = tof_l.readRangeContinuousMillimeters();
-    ;
+
+    pc_timeout(&powerc);
+    mc_timeout(&motorc);
+
     return STATUS_OK;
 }
 
@@ -161,6 +199,13 @@ MCStatus_t MController::mrosGetUpdate(void) {
     // this->cmd_vel.x     = mros_get_cmd_vel_lin_x();
     // this->cmd_vel.y     = mros_get_cmd_vel_lin_y();
     // this->cmd_vel.theta = mros_get_cmd_vel_ang_z();
+
+    if (cmd_vel.timeout_c > CMD_VEL_TIMEOUT + 10) return STATUS_TO;
+    if (cmd_vel.timeout_c++ > CMD_VEL_TIMEOUT) {
+        this->cmd_vel.m_left  = 0;
+        this->cmd_vel.m_right = 0;
+        return STATUS_TO;
+    }
 
     this->cmd_vel.m_left  = mros_get_motor_l();
     this->cmd_vel.m_right = mros_get_motor_r();
