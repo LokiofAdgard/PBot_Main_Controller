@@ -44,6 +44,18 @@ void can_update(MController* mc) {
                 case INA_MPPT_ADDR:
                     bus = &mc->powerc.mppt;
                     break;
+                case INA_BAT_ADDR:
+                    bus = &mc->powerc.bat;
+                    break;
+                case INA_V5_ADDR:
+                    bus = &mc->powerc.v5;
+                    break;
+                case INA_V12A_ADDR:
+                    bus = &mc->powerc.v12a;
+                    break;
+                case INA_V12B_ADDR:
+                    bus = &mc->powerc.v12b;
+                    break;
 
                 default:
                     break;
@@ -59,7 +71,8 @@ void can_update(MController* mc) {
             break;
 
         case MC_ID_STA:
-            mc->motorc.temp = (rx.data[3] << 8 | rx.data[2]);
+            mc->powerc.state.raw = (rx.data[1] << 8 | rx.data[0] << 0);
+            mc->motorc.temp      = (rx.data[3] << 8 | rx.data[2] << 0);
             break;
 
         case MC_ID_ENC:

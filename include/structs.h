@@ -60,6 +60,18 @@ typedef struct {
 } PC_t;
 
 typedef struct {
+    union {
+        struct {
+            uint16_t mode : 2;
+
+            uint16_t req_stat : 1;
+            uint16_t req_enc : 1;
+            uint16_t req_all : 1;
+            uint16_t req : 2;
+        } bits;
+        uint16_t raw;
+    } state;
+
     uint16_t temp;
 
     int32_t enc_m1;

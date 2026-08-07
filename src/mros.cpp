@@ -255,7 +255,8 @@ void mros_publish_mc(const MC_t* mc) {
     mc_msg.data.data[1] = mc->enc_m2;
     mc_msg.data.data[2] = mc->enc_m3;
     mc_msg.data.data[3] = mc->enc_m4;
-    mc_msg.data.data[4] = (uint16_t)(mc->temp);
+    mc_msg.data.data[4] = ((uint16_t)(mc->temp) << 16) | ((uint16_t)(mc->state.raw) << 0);
+    // mc_msg.data.data[4] = (uint16_t)(mc->temp);
 
     RCSOFTCHECK(rcl_publish(&mc_publisher, &mc_msg, NULL));
 }
