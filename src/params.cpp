@@ -9,8 +9,6 @@ volatile bool    per_ms100_flag = false;
 volatile bool    per_sec_flag   = false;
 volatile bool    per_sec10_flag = false;
 
-bool mTof_avl = false;
-
 TwoWire i2c1 = TwoWire(0);
 TwoWire i2c2 = TwoWire(1);
 
@@ -41,16 +39,15 @@ adafruit_bno055_offsets_t savedOffsets = {
 
 void IRAM_ATTR on_per_ms10_timer() {
     per_ms10_flag = true;
-    if (ms10_couter++ >= 10) {
+    if (++ms10_couter >= 10) {
         ms10_couter = 0;
 
         per_ms100_flag = true;
-        if (ms100_couter++ >= 10) {
+        if (++ms100_couter >= 10) {
             ms100_couter = 0;
 
-            per_sec_flag   = true;
-            per_ms100_flag = true;
-            if (sec_couter++ >= 10) {
+            per_sec_flag = true;
+            if (++sec_couter >= 10) {
                 sec_couter = 0;
 
                 per_sec10_flag = true;
@@ -131,13 +128,16 @@ MCStatus_t MController::updateBNO(void) {
 }
 
 MCStatus_t MController::init(void) {
+#ifdef WIFI_MODE
+    Serial.begin(115200);
+#endif
     per_sec_init();
     mros_init(Serial);
     init_gpio();
     init_can();
 
-    i2c1.begin(SDA1, SCL1);
-    i2c2.begin(SDA2, SCL2);
+    i2c1.begin(SDA1, SCL1, 400000);
+    i2c2.begin(SDA2, SCL2, 400000);
 
     bno.begin();
     bno.setMode(OPERATION_MODE_IMUPLUS);
@@ -149,7 +149,6 @@ MCStatus_t MController::init(void) {
         mTof.setResolution(8 * 8);
         mTof.setRangingFrequency(10);
         mTof.startRanging();
-        mTof_avl = true;
     }
 
     pinMode(XSHUT_F, OUTPUT);
@@ -188,7 +187,7 @@ MCStatus_t MController::init(void) {
 
 MCStatus_t MController::update(void) {
     updateBNO();
-    if (mTof_avl) mTof_avl = mTof.getRangingData(&measurementData);
+    if (mTof.isDataReady()) mTof.getRangingData(&measurementData);
     tof_data[0] = tof_f.readRangeContinuousMillimeters();
     tof_data[1] = tof_b.readRangeContinuousMillimeters();
     tof_data[2] = tof_l.readRangeContinuousMillimeters();

@@ -4,9 +4,26 @@
 
 MController mController;
 
+void updateTask(void* pvParameters) {
+    while (true) {
+        mController.update();
+        vTaskDelay(40);
+    }
+}
+
 void setup() {
     neopixelWrite(LED_RGB, 0x00, 0x00, 0x00);
     mController.init();
+
+    xTaskCreatePinnedToCore(
+        updateTask,           // Task function
+        "MControllerUpdate",  // Task name
+        4096,                 // Stack size
+        nullptr,              // Parameters
+        1,                    // Priority
+        nullptr,              // Task handle
+        1                     // Core 1
+    );
     neopixelWrite(LED_RGB, 0x00, 0x04, 0x00);
 }
 
@@ -23,7 +40,7 @@ void loop() {
         per_ms100_flag = false;
 
         can_tx_cmdvel(mController.cmd_vel);
-        mController.update();
+
         mros_publish_imu(&mController);
         mros_publish_tof(&mController);
     }
@@ -32,13 +49,10 @@ void loop() {
         per_sec_flag = false;
 
         if (mros_fail()) esp_restart();
-        char buffer[32];
-        sprintf(buffer, "%.2f", mController.cmd_vel.x);
-        mros_debug(buffer);
+
         mros_publish_pc(&mController.powerc);
         mros_publish_mc(&mController.motorc);
 
-        // can_req(PC_DATA_REQ, GET_STAT);
         can_req(PC_DATA_REQ, GET_ALL);
         can_req(MC_DATA_REQ, GET_ALL);
     }
@@ -49,12 +63,5 @@ void loop() {
 
     if (can_available) {
         can_available = false;
-        // can_update(&mController);
-
-        // Serial.printf("V: %02f\n", (float)(mController.powerc.solar.voltage * 1.25e-3f));
-        // Serial.printf("I: %02f\n", (float)(mController.powerc.solar.current * 0.4f));
-        // Serial.printf("P: %02f\n", (float)(mController.powerc.solar.power * 0.0025f * 0.4f));
-        // Serial.printf("T: %02f\n", (float)(mController.powerc.temp * 0.0625f));
-        // Serial.println("");
     }
 }

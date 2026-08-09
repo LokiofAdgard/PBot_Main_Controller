@@ -134,7 +134,7 @@ void mros_init(HardwareSerial& serial) {
         &cmd_vel_sub,
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int16MultiArray),
-        "cmd_vel"));
+        "raw/cmd_vel"));
 
     //----------------------------------------------------------
     // PC UInt16MultiArray publisher (18 values)
