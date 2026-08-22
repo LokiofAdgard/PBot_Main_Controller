@@ -237,6 +237,7 @@ void mros_publish_pc(const PC_t* pc) {
 #ifdef WIFI_MODE
     return;
 #endif
+    if (pc->isStale) return;
     uint16_t* d = pc_msg.data.data;
 
     d[0] = (uint16_t)(pc->solar.voltage);
@@ -273,6 +274,7 @@ void mros_publish_mc(const MC_t* mc) {
 #ifdef WIFI_MODE
     return;
 #endif
+    if (mc->isStale) return;
     mc_msg.data.data[0] = mc->enc_m1;
     mc_msg.data.data[1] = mc->enc_m2;
     mc_msg.data.data[2] = mc->enc_m3;

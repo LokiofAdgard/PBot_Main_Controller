@@ -88,21 +88,29 @@ void pc_timeout(PC_t* pc) {
 
     if (pc->timeout_c > PC_TIMEOUT + 10) return;
     if (pc->timeout_c++ >= PC_TIMEOUT) {
+        pc->isStale   = true;
         pc->state.raw = 0;
         pc->temp      = 0;
+
+        return;
     }
+    pc->isStale = false;
 }
 
 void mc_timeout(MC_t* mc) {
     if (mc->timeout_c > MC_TIMEOUT) return;
     if (mc->timeout_c++ >= MC_TIMEOUT) {
+        mc->isStale   = true;
         mc->state.raw = 0;
         mc->temp      = 0;
         // mc->enc_m1 = 0;
         // mc->enc_m2 = 0;
         // mc->enc_m3 = 0;
         // mc->enc_m4 = 0;
+
+        return;
     }
+    mc->isStale = false;
 }
 
 void MController::set_err(MCErr_off_t err, bool cls) {

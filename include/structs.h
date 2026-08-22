@@ -63,6 +63,7 @@ typedef struct {
 
     uint16_t temp;
     uint8_t  timeout_c;
+    bool     isStale;
 } PC_t;
 
 typedef struct {
@@ -86,6 +87,7 @@ typedef struct {
     int32_t enc_m4;
 
     uint8_t timeout_c;
+    bool    isStale;
 } MC_t;
 
 typedef struct {
